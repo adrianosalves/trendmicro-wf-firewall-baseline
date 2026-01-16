@@ -20,3 +20,16 @@
 
 ## Evidências
 - Capturas do console, export de logs, hash do pacote aplicado.
+
+
+## Evidências Visuais
+![Regras no Console](assets/screenshots/policy-firewall-rules.png)
+![Monitoramento de Logs](assets/screenshots/logs/firewall-events.png)
+![Testes de Conectividade](assets/screenshots/tests/sql-connectivity.png)
+![Indicadores SOC](assets/screenshots/metrics/dashboard.png)
+
+
+Configuring Worry-Free Services Threat Investigation
+
+https://www.youtube.com/watch?v=Ly2kqibk47I
+
