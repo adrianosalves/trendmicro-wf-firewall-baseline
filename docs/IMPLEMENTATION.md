@@ -25,7 +25,7 @@
 ## Evidências Visuais
 ![Regras no Console](assets/screenshots/01-policy-firewall-rules.png)
 ![Monitoramento de Logs](assets/screenshots/logs/firewall-events.png)
-![Testes de Conectividade](assets/screenshots/tests/01-sql-connectivity.png)
+![Testes de Conectividade](assets/screenshots/tests/sql-connectivity.png)
 ![Indicadores SOC](assets/screenshots/metrics/dashboard.png)
 
 
