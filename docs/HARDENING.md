@@ -1,12 +1,12 @@
 
 # HARDENING CHECKLIST (Windows + Trend Micro WF)
 
-- [ ] Desabilitar NetBIOS sobre TCP/IP quando possível
-- [ ] SMB: exigir assinatura quando aplicável
-- [ ] Atualizações automáticas do agente WF habilitadas
-- [ ] Restrições por IP/Subnet para SQL/SMB
-- [ ] Inspeção HTTPS/URL filtering (se disponível)
-- [ ] Logging detalhado habilitado e enviado ao SIEM
+- [x] Desabilitar NetBIOS sobre TCP/IP quando possível
+- [x] SMB: exigir assinatura quando aplicável
+- [x] Atualizações automáticas do agente WF habilitadas
+- [x] Restrições por IP/Subnet para SQL/SMB
+- [x] Inspeção HTTPS/URL filtering (se disponível)
+- [x] Logging detalhado habilitado e enviado ao SIEM
 
 
 # Por que a Porta 445 Não Responde? Guia Completo de Diagnóstico
