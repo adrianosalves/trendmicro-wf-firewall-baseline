@@ -1,7 +1,7 @@
 ﻿
 # Trend Micro Worry‑Free — Baseline de Regras de Firewall (Windows + OpenVPN)
 
-[!Sjjjjj](https://img.shields.io/badge/status-ativo-success) 
+[!Sjjjjj](https://img.shields.io/badge/status-ativo-success)(#) 
 [![Security](https://img.shields.io/badge/foco-SOC%20%7C%20Ciberseguran%C3%A7a-blue)](./docs/PLAYBOOK.md)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
