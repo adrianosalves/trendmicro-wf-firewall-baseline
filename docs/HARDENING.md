@@ -9,130 +9,131 @@
 - [ ] Logging detalhado habilitado e enviado ao SIEM
 
 
-🔍 Por que a porta 445 não responde, mesmo com liberação no firewall?
-✅ Primeiro: entenda o que é a porta 445
+# Por que a Porta 445 Não Responde? Guia Completo de Diagnóstico
 
-    - A porta 445/TCP é usada pelo protocolo SMB (Server Message Block) para compartilhamento de arquivos, impressoras e IPC$ em redes Windows modernas (Windows 2000+).
-    - Diferente da porta 3389 (RDP), o SMB exige que o serviço esteja ativo e configurado corretamente — não basta só abrir a porta.
+A porta **445/TCP** é essencial para o protocolo **SMB (Server Message Block)**, usado para compartilhamento de arquivos, impressoras e comunicação entre sistemas Windows. Mesmo com a porta liberada no firewall, é comum ela não responder por depender de serviços e configurações específicas.
 
-🚫 Causas mais comuns do erro
-1. Serviço SMB desativado no destino (192.168.0.3)
+---
 
-Mesmo com a porta aberta, se o serviço "Server" (que fornece SMB) estiver parado ou desativado, a porta 445 não responderá.
+## 🔍 Entendendo a Porta 445
+- A porta **445/TCP** é usada pelo **SMBv2/v3** em sistemas Windows modernos.
+- Ela não funciona apenas com liberação de firewall — **exige que o serviço SMB esteja ativo e configurado**.
 
-✅ Verifique no computador de destino (192.168.0.3):
+---
 
-    Pressione Win + R → digite services.msc
-    Localize o serviço chamado "Server"
-    Ele deve estar em execução e definido como "Automático"
+## 🚫 Motivos Comuns para a Porta 445 Não Responder
 
-    ```
-    ⚠️ Em edições "Home" do Windows (ex: Windows 10/11 Home), o compartilhamento SMB pode estar limitado ou desativado por padrão.
-    ```
+### 1. **Serviço SMB desativado (Serviço *Server*)**
+Se o serviço **Server** estiver parado ou desabilitado, a porta 445 não abrirá.
 
-2. Firewall do Windows bloqueando a porta 445 (mesmo com Worry-Free liberado)
+**Verifique no computador alvo (ex: 192.168.0.3):**
+1. Pressione `Win + R`
+2. Digite `services.msc`
+3. Procure pelo serviço **Server**
+4. Ele deve estar em:
+   - Status: **Em execução**
+   - Tipo de inicialização: **Automático**
 
-O Worry-Free é um firewall de terceiros, mas o Firewall do Windows também pode estar ativo e bloqueando.
+> Em versões Windows Home, o suporte SMB pode estar limitado.
 
-✅ No computador de destino (192.168.0.3), execute:
+---
 
-powershell
-   ```
-    Set-NetFirewallRule -DisplayGroup "File and Printer Sharing" -Enabled True
-    ```
+### 2. **Firewall do Windows bloqueando SMB**
+Mesmo usando firewall de terceiros (ex: Worry-Free), o **Firewall do Windows** pode bloquear.
 
-Se estiver desabilitado, ative com:
+**Ative as regras necessárias:**
+```powershell
+Set-NetFirewallRule -DisplayGroup "File and Printer Sharing" -Enabled True
+```
 
-powershell
-    ```
-    Get-NetFirewallRule -DisplayName "*File and Printer Sharing*" | Select DisplayName, Enabled
-    ```
+Verifique regras:
+```powershell
+Get-NetFirewallRule -DisplayName "*File and Printer Sharing*" | Select DisplayName, Enabled
+```
 
-Ou via GUI:
+Ou via interface gráfica:
+- Painel de Controle → Firewall → *Permitir um aplicativo*
+- Ative **Compartilhamento de Arquivo e Impressora** para *Rede privada*
 
-    - Painel de Controle > Firewall do Windows > Permitir um recurso...  
-    - Marque "Compartilhamento de arquivo e impressora" para Rede privada.
+---
 
-3. SMBv1 desativado (e cliente tentando usar SMBv1)
+### 3. **Problemas com SMBv1/SMBv2**
+As versões modernas usam **SMBv2/v3**, e o SMBv1 fica desativado por segurança.
 
-Versões modernas do Windows desativam o SMBv1 por segurança. Se o cliente for muito antigo ou mal configurado, pode falhar.
+Verifique o status dos protocolos:
+```powershell
+Get-SmbServerConfiguration | Select EnableSMB1Protocol, EnableSMB2Protocol
+```
 
-✅ Verifique se o SMB está habilitado (no destino):
+- `EnableSMB2Protocol` deve ser **True**.
+- Evite ativar SMB1 (inseguro).
 
-powershell
-    ```
-    Get-SmbServerConfiguration | Select EnableSMB1Protocol, EnableSMB2Protocol
-    ```
+---
 
-    - EnableSMB2Protocol deve ser True (é o padrão).
-    - Evite ativar SMB1 (inseguro).
+### 4. **Restrição do Worry-Free (Trend Micro)**
+Mesmo liberando portas, o Worry-Free pode bloquear **svchost.exe** ou tráfego SMB por comportamento.
 
-    O SMBv2/v3 usa a mesma porta 445, então isso raramente causa "falha de conexão", mas sim "acesso negado". Ainda assim, vale checar.
+**Ações recomendadas:**
+- Verifique logs de *Application Control* e *Behavior Monitoring*
+- Procure por eventos envolvendo:
+  - SMB
+  - File Sharing
+  - Port 445
 
-4. Antivírus/firewall (Worry-Free) não liberou corretamente
+**Teste temporário:**
+```powershell
+Test-NetConnection 192.168.0.3 -Port 445
+```
+Se funcionar com o Worry-Free desativado → o problema está nele.
 
-Mesmo que você tenha "liberado a porta 445", o Worry-Free pode ter regras adicionais que bloqueiam tráfego SMB por comportamento (não só por porta).
+---
 
-✅ Verifique no console do Worry-Free:
+### 5. **Rede configurada como Pública**
+SMB é bloqueado automaticamente em redes públicas.
 
-    Regras de "Application Control" ou "Behavior Monitoring" podem estar bloqueando svchost.exe (que hospeda o SMB).
-    Procure por alertas relacionados a "SMB", "File Sharing" ou "Port 445" nos logs.
+**Corrija:**
+1. Configurações → Rede e Internet
+2. Clique na conexão atual
+3. Selecione **Rede privada**
 
-    Dica: tente desativar temporariamente o Worry-Free no destino (192.168.0.3) e repita o teste:
+---
 
-    powershell
-    ```
-    Test-NetConnection 192.168.0.3 -Port 445
-    ```
-    
-    Se funcionar, o problema é no Worry-Free, não na configuração do Windows.
+## ✅ Resumo dos Testes Rápidos
+| Passo | Ação |
+|-------|-------|
+| 1 | Confirmar se o serviço **Server** está ativo |
+| 2 | Ativar regras de **File and Printer Sharing** no Firewall do Windows |
+| 3 | Garantir que a rede está como **Privada** |
+| 4 | Testar com o Worry-Free temporariamente desativado |
+| 5 | Testar acesso direto com `net view` |
 
-5. Rede configurada como "Pública" (não "Privada")
+Exemplo:
+```cmd
+net view \192.168.0.3
+```
 
-O Windows bloqueia compartilhamento de arquivos em redes públicas por padrão.
+---
 
-✅ No destino (192.168.0.3):
+## 🧪 Testes Alternativos
+### Teste simples com Telnet
+```cmd
+telnet 192.168.0.3 445
+```
+- **Tela preta** → Porta aberta
+- **Erro imediato** → Bloqueio/serviço inativo
 
-    Vá em Configurações > Rede e Internet > Ethernet/Wi-Fi
-    Clique na rede atual
-    Defina como "Rede privada"
+> Ative o Telnet se necessário: *Recursos do Windows → Cliente Telnet*
 
-✅ Resumo das ações para testar AGORA
-Passo / Ação
+---
 
-1. No 192.168.0.3, verifique se o serviço "Server" está em execução
-2. Ative as regras de firewall do Windows para "File and Printer Sharing"
-3. Certifique-se de que a rede está definida como "Privada"
-4. Teste com o Worry-Free desativado temporariamente
-5. Tente acessar o compartilhamento diretamente:
+## 🏁 Conclusão
+Se a porta 3389 (RDP) funciona, a conectividade está ok.
+A porta 445 falha principalmente por:
+- Serviço **Server** desativado
+- Firewall do Windows bloqueando SMB
+- Restrições do Worry-Free
+- Rede pública desabilitando compartilhamento
 
-cmd
-    ```
-    net view \\192.168.0.3
-    ```
+🔎 Comece pela verificação do **serviço Server** — é o culpado em 90% dos casos.
 
-🧪 Comando de teste alternativo
 
-Além do Test-NetConnection, use:
-
-cmd
-    ```
-    telnet 192.168.0.3 445
-    ```
-
-(Se o telnet não estiver instalado, ative em "Recursos do Windows")
-
-Se a tela ficar preta → conexão bem-sucedida.
-Se der erro imediato → porta fechada/bloqueada.
-
-Conclusão
-
-O fato de a porta 3389 funcionar prova que há conectividade de rede básica.
-A falha na porta 445 quase sempre está relacionada a:
-
-➡️ Serviço SMB desativado
-➡️ Firewall do Windows bloqueando
-➡️ Worry-Free com regras adicionais de comportamento
-➡️ Rede definida como "Pública"
-
-Comece verificando o serviço "Server" e o firewall do Windows — são os culpados em 90% dos casos.
